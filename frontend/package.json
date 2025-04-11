@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "tsx lib/db/migrate && next build",
+    "build": "node -e \"process.env.SKIP_DB_MIGRATION == 'true' ? require('child_process').execSync('next build') : require('child_process').execSync('tsx lib/db/migrate && next build')\"",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",
     "lint:fix": "next lint --fix && biome lint --write --unsafe",
@@ -19,6 +19,7 @@
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test --workers=4"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.9",
     "@ai-sdk/react": "^1.2.8",
     "@ai-sdk/xai": "^1.2.10",
     "@anthropic-ai/sdk": "^0.39.0",

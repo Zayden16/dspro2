@@ -3,7 +3,7 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from 'ai';
-import { xai } from '@ai-sdk/xai';
+import { anthropic, createAnthropic } from '@ai-sdk/anthropic';
 import { isTestEnvironment } from '../constants';
 import {
   artifactModel,
@@ -21,17 +21,32 @@ export const myProvider = isTestEnvironment
         'artifact-model': artifactModel,
       },
     })
-  : customProvider({
+  : (() => {
+      // Create a custom Anthropic provider if MCP_BASE_URL is specified
+      const anthropicProvider = process.env.MCP_BASE_URL
+        ? createAnthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY,
+            baseURL: process.env.MCP_BASE_URL,
+          })
+        : anthropic;
+        
+      return customProvider({
       languageModels: {
-        'chat-model': xai('grok-2-1212'),
+        'chat-model': anthropicProvider('claude-3-sonnet-20240229', {
+          sendReasoning: true,
+        }),
         'chat-model-reasoning': wrapLanguageModel({
-          model: xai('grok-3-mini-beta'),
+          model: anthropicProvider('claude-3-opus-20240229', {
+            sendReasoning: true,
+          }),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': xai('grok-2-1212'),
-        'artifact-model': xai('grok-2-1212'),
-      },
-      imageModels: {
-        'small-model': xai.image('grok-2-image'),
+        'title-model': anthropicProvider('claude-3-haiku-20240307', {
+          sendReasoning: true,
+        }),
+        'artifact-model': anthropicProvider('claude-3-sonnet-20240229', {
+          sendReasoning: true,
+        }),
       },
     });
+    })();

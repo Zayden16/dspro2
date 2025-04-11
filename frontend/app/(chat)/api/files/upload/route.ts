@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         new PutObjectCommand({
           Bucket: process.env.S3_BUCKET_NAME || '',
           Key: filename,
-          Body: fileBuffer,
+          Body: new Uint8Array(fileBuffer),
           ContentType: file.type,
           ACL: 'public-read',
         })

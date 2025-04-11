@@ -16,13 +16,14 @@ import {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
+import { ArrowUpIcon, PaperclipIcon, StopIcon, ImageIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { ImageUpload } from './image-upload';
 
 function PureMultimodalInput({
   chatId,
@@ -102,6 +103,7 @@ function PureMultimodalInput({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+  const [showImageUpload, setShowImageUpload] = useState(false);
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
@@ -131,6 +133,25 @@ function PureMultimodalInput({
     formData.append('file', file);
 
     try {
+      // First try S3 if it's an image
+      if (file.type.startsWith('image/')) {
+        const response = await fetch('/api/images', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          return {
+            url: data.url,
+            name: file.name,
+            contentType: file.type,
+          };
+        }
+      }
+
+      // Fallback to regular file upload
       const response = await fetch('/api/files/upload', {
         method: 'POST',
         body: formData,
@@ -196,11 +217,25 @@ function PureMultimodalInput({
         tabIndex={-1}
       />
 
-      {(attachments.length > 0 || uploadQueue.length > 0) && (
+      {(attachments.length > 0 || uploadQueue.length > 0 || showImageUpload) && (
         <div
-          data-testid="attachments-preview"
           className="flex flex-row gap-2 overflow-x-scroll items-end"
         >
+          {showImageUpload && (
+            <div className="mb-2 w-full max-w-md">
+              <ImageUpload 
+                onImageUploaded={(imageUrl) => {
+                  setAttachments(prev => [...prev, {
+                    url: imageUrl,
+                    name: 'uploaded-image.jpg',
+                    contentType: 'image/jpeg'
+                  }]);
+                  setShowImageUpload(false);
+                }}
+              />
+            </div>
+          )}
+          
           {attachments.map((attachment) => (
             <PreviewAttachment key={attachment.url} attachment={attachment} />
           ))}
@@ -248,8 +283,20 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start">
+      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-1">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+        <Button
+          data-testid="image-button"
+          className="rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+          onClick={(event) => {
+            event.preventDefault();
+            setShowImageUpload(!showImageUpload);
+          }}
+          disabled={status !== 'ready'}
+          variant="ghost"
+        >
+          <ImageIcon size={14} />
+        </Button>
       </div>
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
