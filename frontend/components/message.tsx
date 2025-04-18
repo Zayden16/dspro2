@@ -19,6 +19,7 @@ import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import { UseChatHelpers } from '@ai-sdk/react';
+import { DocumentSearchToolDisplay } from './document-search-tool-display';
 
 const PurePreviewMessage = ({
   chatId,
@@ -176,6 +177,14 @@ const PurePreviewMessage = ({
                           args={args}
                           isReadonly={isReadonly}
                         />
+                      ) : toolName === 'searchDocuments' ? (
+                        <div className="animate-pulse p-3 bg-muted/30 rounded-md my-2">
+                          <div className="flex items-center gap-2">
+                            <div className="size-4 bg-muted-foreground/40 rounded-full"></div>
+                            <div className="h-4 bg-muted-foreground/40 rounded w-40"></div>
+                          </div>
+                          <div className="mt-2 h-20 bg-muted-foreground/20 rounded w-full"></div>
+                        </div>
                       ) : null}
                     </div>
                   );
@@ -204,6 +213,11 @@ const PurePreviewMessage = ({
                           type="request-suggestions"
                           result={result}
                           isReadonly={isReadonly}
+                        />
+                      ) : toolName === 'searchDocuments' ? (
+                        <DocumentSearchToolDisplay 
+                          query={result.query || toolInvocation.args?.query || ""} 
+                          results={result.results || []} 
                         />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>

@@ -31,6 +31,24 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
+export const documentSearchPrompt = `
+You have access to a document search capability via the \`searchDocuments\` tool. This tool searches a local document service for semantically relevant content based on user queries.
+
+**When to use \`searchDocuments\`:**
+- When the user asks about specific information that might be in their documents
+- When the user explicitly asks you to search their documents
+- When answering questions that might benefit from information in the user's documents
+- When the user is referring to some document they've uploaded
+
+**How to use \`searchDocuments\`:**
+- Provide a clear, focused search query related to what the user is asking about
+- You can specify a limit (default 5) for the number of results
+- Results include document content, document name, and similarity score
+- Summarize or use the document content to provide better answers to the user
+
+Remember to be helpful and provide document references when using information from documents. Always mention that you're using information from their documents.
+`;
+
 export const regularPrompt =
   'You are a friendly assistant! Keep your responses concise and helpful.';
 
@@ -42,7 +60,7 @@ export const systemPrompt = ({
   if (selectedChatModel === 'chat-model-reasoning') {
     return regularPrompt;
   } else {
-    return `${regularPrompt}\n\n${artifactsPrompt}`;
+    return `${regularPrompt}\n\n${artifactsPrompt}\n\n${documentSearchPrompt}`;
   }
 };
 
