@@ -32,11 +32,11 @@ export const myProvider = isTestEnvironment
         
       return customProvider({
       languageModels: {
-        'chat-model': anthropicProvider('claude-3-sonnet-20240229', {
+        'chat-model': anthropicProvider('claude-3-haiku-20240307', {
           sendReasoning: true,
         }),
         'chat-model-reasoning': wrapLanguageModel({
-          model: anthropicProvider('claude-3-opus-20240229', {
+          model: anthropicProvider('claude-3-haiku-20240307', {
             sendReasoning: true,
           }),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
@@ -44,7 +44,7 @@ export const myProvider = isTestEnvironment
         'title-model': anthropicProvider('claude-3-haiku-20240307', {
           sendReasoning: true,
         }),
-        'artifact-model': anthropicProvider('claude-3-sonnet-20240229', {
+        'artifact-model': anthropicProvider('claude-3-haiku-20240307', {
           sendReasoning: true,
         }),
       },
